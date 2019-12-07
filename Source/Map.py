@@ -29,7 +29,7 @@ def FeatureDetection():
 #     thresh = dict(threshold=25, nonmaxSuppression=True);
 #      fast = cv2.FastFeatureDetector_create(**thresh)
 #     return fast
-#    orb = cv2.ORB_create(edgeThreshold=25, patchSize=31, nlevels=8, fastThreshold=20, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
+#    orb = cv2.ORB_create(nfeatures=500)
 #     sift=cv2.xfeatures2d.SIFT_create()
     orb = cv2.ORB_create()
 #     return sift
@@ -58,8 +58,8 @@ def Measure_des(des):
         mat = bf.match(des, List_des[num])
         list_temp.append(len(mat))
         num+=50
-    print(list_temp)
-    print ("max = {0}".format(max(list_temp)))
+    # print(list_temp)
+    # print ("max = {0}".format(max(list_temp)))
     if max(list_temp) == list_temp[0]:
 #         print('0')
         compare_feature(des, List_des[0:51], 0)
@@ -77,22 +77,23 @@ def Measure_des(des):
         
 def compare_feature(des, subListDes, flag):
 #     for filename in sorted(glob.glob('data_train/*.npy'), key=numericalSort):
-    print("flat goc = {0}".format(flag))
+    #print("flat goc = {0}".format(flag))
     for des2 in subListDes:
 #         print(filename)
 #         bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
 #         print('aaaaa')
         matches = bf.match(des, des2)
 
-#         List_matches.append(len(matches))
-        if len(matches) > 450:
-# #             print(filename)
-# #         print(len(matches))
-            print("flag = {}".format(flag))
-            List_matches.append(List_coor[flag])
-            break
-        flag+=1
-    
+        List_matches.append(len(matches))
+        
+#         if len(matches) > 450:
+# # #             print(filename)
+# # #         print(len(matches))
+#             print("flag = {}".format(flag))
+#             List_matches.append(List_coor[flag])
+#             break
+#         flag+=1
+#     print("len of matches : ={}")
         
         
 def Train(des, x, y, intName):
@@ -167,10 +168,11 @@ while(True):
         kp1, des3 = detector.detectAndCompute(curImage, None);
         #Measure_des(des3)
 #         compare_feature(des3)
-#         print(List_matches)
+        #print("len {0}".format(List_matches))
+        #print("max {0}".format(max(List_matches)))
         List_matches= []
             
-        img1=cv2.drawKeypoints(curImage,kp1,curImage_c)
+        # img1=cv2.drawKeypoints(curImage,kp1,curImage_c)
         #cv2.imshow("ve",img1)
         #print(len(kp1))
         preFeature, curFeature = FeatureTracking(preImage, curImage, preFeature)
@@ -187,8 +189,8 @@ while(True):
 #         print(draw_x)
 #         print(draw_y)
         #save description of frame to database
-        Train(des3, draw_x, draw_y, CountFrameTraining)
-        CountFrameTraining +=1
+        #Train(des3, draw_x, draw_y, CountFrameTraining)
+        #CountFrameTraining +=1
         cv2.circle(Map2d, (draw_x, draw_y) ,1, (0,0,255), 2);    
         cv2.rectangle(Map2d, (10, 30), (550, 50), (0,0,0), cv2.FILLED);
         text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
