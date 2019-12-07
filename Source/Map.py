@@ -29,9 +29,9 @@ def FeatureDetection():
 #     thresh = dict(threshold=25, nonmaxSuppression=True);
 #      fast = cv2.FastFeatureDetector_create(**thresh)
 #     return fast
-#    orb = cv2.ORB_create(nfeatures=500)
-#     sift=cv2.xfeatures2d.SIFT_create()
-    orb = cv2.ORB_create()
+#    orb = cv2.ORB_create(edgeThreshold=25, patchSize=31, nlevels=8, fastThreshold=20, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
+#    orb=cv2.xfeatures2d.SIFT_create()
+    orb = cv2.ORB_create(firstLevel=0, nfeatures=500)
 #     return sift
     return orb
 
@@ -58,8 +58,8 @@ def Measure_des(des):
         mat = bf.match(des, List_des[num])
         list_temp.append(len(mat))
         num+=50
-    # print(list_temp)
-    # print ("max = {0}".format(max(list_temp)))
+    print(list_temp)
+    print ("max = {0}".format(max(list_temp)))
     if max(list_temp) == list_temp[0]:
 #         print('0')
         compare_feature(des, List_des[0:51], 0)
@@ -77,23 +77,22 @@ def Measure_des(des):
         
 def compare_feature(des, subListDes, flag):
 #     for filename in sorted(glob.glob('data_train/*.npy'), key=numericalSort):
-    #print("flat goc = {0}".format(flag))
+    print("flat goc = {0}".format(flag))
     for des2 in subListDes:
 #         print(filename)
 #         bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
 #         print('aaaaa')
         matches = bf.match(des, des2)
 
-        List_matches.append(len(matches))
-        
-#         if len(matches) > 450:
-# # #             print(filename)
-# # #         print(len(matches))
-#             print("flag = {}".format(flag))
-#             List_matches.append(List_coor[flag])
-#             break
-#         flag+=1
-#     print("len of matches : ={}")
+#         List_matches.append(len(matches))
+        if len(matches) > 450:
+# #             print(filename)
+# #         print(len(matches))
+            print("flag = {}".format(flag))
+            List_matches.append(List_coor[flag])
+            break
+        flag+=1
+    
         
         
 def Train(des, x, y, intName):
@@ -104,8 +103,10 @@ def Train(des, x, y, intName):
 #initialization
 #####Begin#####
 
-cap = cv2.VideoCapture('../VideoTest/video.mp4')
+cap = cv2.VideoCapture('../VideoTest/test_0.mp4')
+cap.set(cv2.CAP_PROP_POS_FRAMES, 30)
 f, img_1 = cap.read()
+cap.set(cv2.CAP_PROP_POS_FRAMES, 5)
 f, img_2 = cap.read()
 if len(img_1) == 3:
     gray_1 = cv2.cvtColor(img_1, cv2.COLOR_BGR2GRAY)
@@ -120,8 +121,8 @@ p1       = np.array([ele.pt for ele in kp1],dtype='float32')
 p1, p2   = FeatureTracking(gray_1, gray_2, p1)
 
 #Camera parameters
-fc = 600
-pp = (320.087, 240.3019)
+fc = 554.122
+pp = ( 246.55, 307.60)
 E, mask = cv2.findEssentialMat(p2, p1, fc, pp, cv2.RANSAC,0.999,1.0); 
 _, R, t, mask = cv2.recoverPose(E, p2, p1,focal=fc, pp = pp);
 
@@ -168,13 +169,9 @@ while(True):
         kp1, des3 = detector.detectAndCompute(curImage, None);
         #Measure_des(des3)
 #         compare_feature(des3)
-        #print("len {0}".format(List_matches))
-        #print("max {0}".format(max(List_matches)))
+#         print(List_matches)
         List_matches= []
-            
-        # img1=cv2.drawKeypoints(curImage,kp1,curImage_c)
-        #cv2.imshow("ve",img1)
-        #print(len(kp1))
+           
         preFeature, curFeature = FeatureTracking(preImage, curImage, preFeature)
         E, mask = cv2.findEssentialMat(curFeature, preFeature, fc, pp, cv2.RANSAC,0.999,1.0); 
         _, R, t, mask = cv2.recoverPose(E, curFeature, preFeature, focal=fc, pp = pp);
@@ -192,15 +189,13 @@ while(True):
         #Train(des3, draw_x, draw_y, CountFrameTraining)
         #CountFrameTraining +=1
         cv2.circle(Map2d, (draw_x, draw_y) ,1, (0,0,255), 2);    
-        cv2.rectangle(Map2d, (10, 30), (550, 50), (0,0,0), cv2.FILLED);
         text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
         temp = np.zeros((480, 1280, 3), dtype=np.uint8)
-        cv2.drawKeypoints(curImage, kp1, temp)
-#         cv2.imshow('temp', temp)
-        cv2.imshow('image', curImage_c)
+    
         cv2.imshow( "Map2dectory", Map2d )
-    stop = timeit.default_timer()
-    print(stop - start)
+        cv2.imshow("anh test ",img) 
+        stop = timeit.default_timer()
+        print(stop - start)
    
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
