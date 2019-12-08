@@ -1,9 +1,9 @@
 import numpy as np
 import cv2
-import timeit
+import time
 import glob
 import re
-
+import matplotlib.pyplot as plt
 def GetAbsoluteScale(f, frame_id):
       x_pre, y_pre, z_pre = f[frame_id-1][3], f[frame_id-1][7], f[frame_id-1][11]
       x    , y    , z     = f[frame_id][3], f[frame_id][7], f[frame_id][11]
@@ -52,47 +52,57 @@ def GetFeature():
     
 
 def Measure_des(des):
+    global List_matches
     num = 0
     list_temp = []
+    #print("is range {0}".format(Is_range))
+    if Is_range == True :
+        List_matches = []
+        m0 = time.time()
+        compare_feature(des, List_des[Start_range:End_range], Start_range,End_range)
+        print(time.time()-m0)
+        print("o tren")
+        if len(List_matches) !=0:
+            return
     while num <= 150:
         mat = bf.match(des, List_des[num])
         list_temp.append(len(mat))
         num+=50
-    print(list_temp)
-    print ("max = {0}".format(max(list_temp)))
+    #print(list_temp)
+    #print ("max = {0}".format(max(list_temp)))
+    # compare_feature(des, List_des[0:213], 0,213)
     if max(list_temp) == list_temp[0]:
-#         print('0')
-        compare_feature(des, List_des[0:51], 0)
+        print('khoang 0')
+        compare_feature(des, List_des[0:51], 0,51)
     elif max(list_temp) == list_temp[1]:
-#         print('50')
-        compare_feature(des, List_des[50:101], 50)
+        print('khoang 50')
+        compare_feature(des, List_des[50:101], 50,101)
     elif max(list_temp) == list_temp[2]:
-#         print('100')
-        compare_feature(des, List_des[100:151], 100)
+        print('khoang 100')
+        compare_feature(des, List_des[100:151], 100,151)
     elif max(list_temp) == list_temp[3]:
-#         print('150')
-        compare_feature(des, List_des[150:], 150)
+        print('khoang 150')
+        compare_feature(des, List_des[150:], 150,len(List_des))
 
     
         
-def compare_feature(des, subListDes, flag):
-#     for filename in sorted(glob.glob('data_train/*.npy'), key=numericalSort):
-    print("flat goc = {0}".format(flag))
+def compare_feature(des, subListDes, start,end):
+    global Start_range, End_range, Is_range, mang_tam
+    intSubStart = start
+    print('start {0}'.format(start))
+    print('end {0}'.format(end))
+    t1 = time.time()
     for des2 in subListDes:
-#         print(filename)
-#         bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-#         print('aaaaa')
         matches = bf.match(des, des2)
-
-#         List_matches.append(len(matches))
+        mang_tam.append(len(matches))
         if len(matches) > 450:
-# #             print(filename)
-# #         print(len(matches))
-            print("flag = {}".format(flag))
-            List_matches.append(List_coor[flag])
+            List_matches.append(List_coor[start])
+            Start_range = start
+            End_range = end + (start-intSubStart)
+            Is_range = True
             break
-        flag+=1
-    
+        start+=1
+    print("time {0}".format(time.time()-t1))
         
         
 def Train(des, x, y, intName):
@@ -103,7 +113,7 @@ def Train(des, x, y, intName):
 #initialization
 #####Begin#####
 
-cap = cv2.VideoCapture('../VideoTest/test_0.mp4')
+cap = cv2.VideoCapture('../VideoTest/video.mp4')
 cap.set(cv2.CAP_PROP_POS_FRAMES, 30)
 f, img_1 = cap.read()
 cap.set(cv2.CAP_PROP_POS_FRAMES, 5)
@@ -134,9 +144,13 @@ t_f = t
 Map2d = np.zeros((1200, 1200, 3), dtype=np.uint8)
 CountFrameIgnor = 0
 #play image sequences
+Is_range = False
+Start_range = 0
+End_range = 0
 MIN_NUM_FEAT  = 200
 img=0
 List_matches = []
+mang_tam = []
 List_coor = []
 List_des = []
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)   
@@ -145,8 +159,10 @@ CountFrameTraining = 0
 ## call funtion initially
 GetFeature()
 ##### <<<BEGIN>>> #####
+
 while(True):
-    start = timeit.default_timer()
+    start = time.time()
+    localtion = cv2.imread('mapold.png')
     ret, FrameTemp = cap.read()
     if ret !=True:
         print("can not get the frame")
@@ -167,40 +183,52 @@ while(True):
               curImage = curImage_c
         
         kp1, des3 = detector.detectAndCompute(curImage, None);
-        #Measure_des(des3)
+        Measure_des(des3)
+        # print(mang_tam)
+        # print("max {0}".format(max(mang_tam)))
+        #plt.bar(range(0,214), [0,1,2,3])
+        #plt.bar(np.arange(len(mang_tam)), mang_tam, align='center', alpha=0.5)
+        #plt.pause(0.02)
+        mang_tam = []
 #         compare_feature(des3)
-#         print(List_matches)
-        List_matches= []
-           
-        preFeature, curFeature = FeatureTracking(preImage, curImage, preFeature)
-        E, mask = cv2.findEssentialMat(curFeature, preFeature, fc, pp, cv2.RANSAC,0.999,1.0); 
-        _, R, t, mask = cv2.recoverPose(E, curFeature, preFeature, focal=fc, pp = pp);
-        t_f = t_f + 1*R_f.dot(t)    
-        R_f = R.dot(R_f)   
-        preImage = curImage
-        preFeature = curFeature
+        # print(max(List_matches,default=0))
+        #List_matches= []
+        ########### ve map   
+        # preFeature, curFeature = FeatureTracking(preImage, curImage, preFeature)
+        # E, mask = cv2.findEssentialMat(curFeature, preFeature, fc, pp, cv2.RANSAC,0.999,1.0); 
+        # _, R, t, mask = cv2.recoverPose(E, curFeature, preFeature, focal=fc, pp = pp);
+        # t_f = t_f + 1*R_f.dot(t)    
+        # R_f = R.dot(R_f)   
+        # preImage = curImage
+        # preFeature = curFeature
         
-    
+
         ####Visualization of the result
-        draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
+        # draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
+        ############## end
+
+        if len(List_matches)!=0:
+            print("day ne {0}".format(List_matches))
+            draw_x, draw_y =  int(List_matches[0][0]),int(List_matches[0][1])
+            # List_matches= []
 #         print(draw_x)
 #         print(draw_y)
         #save description of frame to database
-        #Train(des3, draw_x, draw_y, CountFrameTraining)
-        #CountFrameTraining +=1
-        cv2.circle(Map2d, (draw_x, draw_y) ,1, (0,0,255), 2);    
-        text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
-        temp = np.zeros((480, 1280, 3), dtype=np.uint8)
+        # Train(des3, draw_x, draw_y, CountFrameTraining)
+        # CountFrameTraining +=1
+            cv2.circle(localtion, (draw_x, draw_y) ,1, (0,255,255), 2);    
+        # text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
+        # temp = np.zeros((480, 1280, 3), dtype=np.uint8)
     
-        cv2.imshow( "Map2dectory", Map2d )
+        cv2.imshow( "Map2dectory", localtion )
         cv2.imshow("anh test ",img) 
-        stop = timeit.default_timer()
+        stop = time.time()
         print(stop - start)
    
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
         break
-
-cv2.imwrite('map.png', Map2d);
+plt.show()
+#cv2.imwrite('map.png', Map2d);
 cv2.destroyAllWindows()
 print("DONE!!!!!")
