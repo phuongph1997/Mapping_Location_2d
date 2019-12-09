@@ -60,8 +60,8 @@ def Measure_des(des):
         List_matches = []
         m0 = time.time()
         compare_feature(des, List_des[Start_range:End_range], Start_range,End_range)
-        print(time.time()-m0)
-        print("o tren")
+        #print(time.time()-m0)
+        #print("o tren")
         if len(List_matches) !=0:
             return
     while num <= 150:
@@ -72,16 +72,16 @@ def Measure_des(des):
     #print ("max = {0}".format(max(list_temp)))
     # compare_feature(des, List_des[0:213], 0,213)
     if max(list_temp) == list_temp[0]:
-        print('khoang 0')
+        # print('khoang 0')
         compare_feature(des, List_des[0:51], 0,51)
     elif max(list_temp) == list_temp[1]:
-        print('khoang 50')
+        # print('khoang 50')
         compare_feature(des, List_des[50:101], 50,101)
     elif max(list_temp) == list_temp[2]:
-        print('khoang 100')
+        # print('khoang 100')
         compare_feature(des, List_des[100:151], 100,151)
     elif max(list_temp) == list_temp[3]:
-        print('khoang 150')
+        # print('khoang 150')
         compare_feature(des, List_des[150:], 150,len(List_des))
 
     
@@ -89,20 +89,20 @@ def Measure_des(des):
 def compare_feature(des, subListDes, start,end):
     global Start_range, End_range, Is_range, mang_tam
     intSubStart = start
-    print('start {0}'.format(start))
-    print('end {0}'.format(end))
+    #print('start {0}'.format(start))
+    #print('end {0}'.format(end))
     t1 = time.time()
     for des2 in subListDes:
         matches = bf.match(des, des2)
         mang_tam.append(len(matches))
-        if len(matches) > 450:
+        if len(matches) > 270:
             List_matches.append(List_coor[start])
             Start_range = start
             End_range = end + (start-intSubStart)
             Is_range = True
             break
         start+=1
-    print("time {0}".format(time.time()-t1))
+    #print("time {0}".format(time.time()-t1))
         
         
 def Train(des, x, y, intName):
@@ -113,7 +113,7 @@ def Train(des, x, y, intName):
 #initialization
 #####Begin#####
 
-cap = cv2.VideoCapture('../VideoTest/video.mp4')
+cap = cv2.VideoCapture('../VideoTest/test_0.mp4')
 cap.set(cv2.CAP_PROP_POS_FRAMES, 30)
 f, img_1 = cap.read()
 cap.set(cv2.CAP_PROP_POS_FRAMES, 5)
@@ -184,8 +184,8 @@ while(True):
         
         kp1, des3 = detector.detectAndCompute(curImage, None);
         Measure_des(des3)
-        # print(mang_tam)
-        # print("max {0}".format(max(mang_tam)))
+        #print(mang_tam)
+        print("max {0}".format(max(mang_tam)))
         #plt.bar(range(0,214), [0,1,2,3])
         #plt.bar(np.arange(len(mang_tam)), mang_tam, align='center', alpha=0.5)
         #plt.pause(0.02)
@@ -204,7 +204,7 @@ while(True):
         
 
         ####Visualization of the result
-        # draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
+        
         ############## end
 
         if len(List_matches)!=0:
@@ -214,16 +214,18 @@ while(True):
 #         print(draw_x)
 #         print(draw_y)
         #save description of frame to database
+        #draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
         # Train(des3, draw_x, draw_y, CountFrameTraining)
         # CountFrameTraining +=1
-            cv2.circle(localtion, (draw_x, draw_y) ,1, (0,255,255), 2);    
+        # cv2.circle(Map2d, (draw_x, draw_y) ,1, (0,255,255), 2);   
+            cv2.circle(localtion, (draw_x, draw_y) ,1, (0,0,255), 2);    
         # text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
         # temp = np.zeros((480, 1280, 3), dtype=np.uint8)
     
         cv2.imshow( "Map2dectory", localtion )
         cv2.imshow("anh test ",img) 
         stop = time.time()
-        print(stop - start)
+        #print(stop - start)
    
     k = cv2.waitKey(1) & 0xFF
     if k == 27:
