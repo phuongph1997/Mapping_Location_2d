@@ -4,6 +4,8 @@ import time
 import glob
 import re
 import matplotlib.pyplot as plt
+import random 
+
 def GetAbsoluteScale(f, frame_id):
       x_pre, y_pre, z_pre = f[frame_id-1][3], f[frame_id-1][7], f[frame_id-1][11]
       x    , y    , z     = f[frame_id][3], f[frame_id][7], f[frame_id][11]
@@ -113,8 +115,8 @@ def Train(des, x, y, intName):
 #initialization
 #####Begin#####
 
-cap = cv2.VideoCapture('../VideoTest/test_0.mp4')
-cap.set(cv2.CAP_PROP_POS_FRAMES, 30)
+cap = cv2.VideoCapture('../VideoTest/final9.mp4')
+cap.set(cv2.CAP_PROP_POS_FRAMES, 200)
 f, img_1 = cap.read()
 cap.set(cv2.CAP_PROP_POS_FRAMES, 5)
 f, img_2 = cap.read()
@@ -131,7 +133,7 @@ p1       = np.array([ele.pt for ele in kp1],dtype='float32')
 p1, p2   = FeatureTracking(gray_1, gray_2, p1)
 
 #Camera parameters
-fc = 554.122
+fc = 800
 pp = ( 246.55, 307.60)
 E, mask = cv2.findEssentialMat(p2, p1, fc, pp, cv2.RANSAC,0.999,1.0); 
 _, R, t, mask = cv2.recoverPose(E, p2, p1,focal=fc, pp = pp);
@@ -183,9 +185,9 @@ while(True):
               curImage = curImage_c
         
         kp1, des3 = detector.detectAndCompute(curImage, None);
-        Measure_des(des3)
+        #Measure_des(des3)
         #print(mang_tam)
-        print("max {0}".format(max(mang_tam)))
+        #print("max {0}".format(max(mang_tam)))
         #plt.bar(range(0,214), [0,1,2,3])
         #plt.bar(np.arange(len(mang_tam)), mang_tam, align='center', alpha=0.5)
         #plt.pause(0.02)
@@ -194,35 +196,39 @@ while(True):
         # print(max(List_matches,default=0))
         #List_matches= []
         ########### ve map   
-        # preFeature, curFeature = FeatureTracking(preImage, curImage, preFeature)
-        # E, mask = cv2.findEssentialMat(curFeature, preFeature, fc, pp, cv2.RANSAC,0.999,1.0); 
-        # _, R, t, mask = cv2.recoverPose(E, curFeature, preFeature, focal=fc, pp = pp);
-        # t_f = t_f + 1*R_f.dot(t)    
-        # R_f = R.dot(R_f)   
-        # preImage = curImage
-        # preFeature = curFeature
+        preFeature, curFeature = FeatureTracking(preImage, curImage, preFeature)
+        E, mask = cv2.findEssentialMat(curFeature, preFeature, fc, pp, cv2.RANSAC,0.999,1.0); 
+        _, R, t, mask = cv2.recoverPose(E, curFeature, preFeature, focal=fc, pp = pp);
+        t_f = t_f + 1*R_f.dot(t)    
+        R_f = R.dot(R_f)   
+        preImage = curImage
+        preFeature = curFeature
         
 
         ####Visualization of the result
         
         ############## end
 
-        if len(List_matches)!=0:
-            print("day ne {0}".format(List_matches))
-            draw_x, draw_y =  int(List_matches[0][0]),int(List_matches[0][1])
+        # if len(List_matches)!=0:
+        #     print("day ne {0}".format(List_matches))
+        #     draw_x, draw_y =  int(List_matches[0][0]),int(List_matches[0][1])
+
             # List_matches= []
 #         print(draw_x)
 #         print(draw_y)
         #save description of frame to database
-        #draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
+        draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
         # Train(des3, draw_x, draw_y, CountFrameTraining)
         # CountFrameTraining +=1
-        # cv2.circle(Map2d, (draw_x, draw_y) ,1, (0,255,255), 2);   
-            cv2.circle(localtion, (draw_x, draw_y) ,1, (0,0,255), 2);    
+        color = (random.randrange(0, 255, 2),random.randrange(0, 255, 2)   ,random.randrange(0, 255, 2)      )
+
+        cv2.circle(Map2d, (draw_x, draw_y) ,1, color, 2);   
+            #cv2.circle(localtion, (draw_x, draw_y) ,1, (0,0,255), 2);    
         # text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
         # temp = np.zeros((480, 1280, 3), dtype=np.uint8)
     
-        cv2.imshow( "Map2dectory", localtion )
+        #cv2.imshow( "Map2dectory", localtion )
+        cv2.imshow( "Map2dectory", Map2d )
         cv2.imshow("anh test ",img) 
         stop = time.time()
         #print(stop - start)
