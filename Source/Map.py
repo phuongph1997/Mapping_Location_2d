@@ -115,7 +115,7 @@ def Train(des, x, y, intName):
 #initialization
 #####Begin#####
 
-cap = cv2.VideoCapture('../VideoTest/final9.mp4')
+cap = cv2.VideoCapture('../VideoTest/final7.mp4')
 cap.set(cv2.CAP_PROP_POS_FRAMES, 200)
 f, img_1 = cap.read()
 cap.set(cv2.CAP_PROP_POS_FRAMES, 5)
@@ -132,9 +132,17 @@ kp1, des1      = detector.detectAndCompute(img_1, None)
 p1       = np.array([ele.pt for ele in kp1],dtype='float32')
 p1, p2   = FeatureTracking(gray_1, gray_2, p1)
 
+fc = 327.89
+pp = ( 368.43, 434.54)
+
 #Camera parameters
-fc = 800
-pp = ( 246.55, 307.60)
+# final ne
+# fc = 330
+# pp = ( 367.55, 434.60)
+
+# fc = 800
+# pp = ( 246.55, 307.60)
+
 E, mask = cv2.findEssentialMat(p2, p1, fc, pp, cv2.RANSAC,0.999,1.0); 
 _, R, t, mask = cv2.recoverPose(E, p2, p1,focal=fc, pp = pp);
 
@@ -185,7 +193,7 @@ while(True):
               curImage = curImage_c
         
         kp1, des3 = detector.detectAndCompute(curImage, None);
-        #Measure_des(des3)
+        # Measure_des(des3)
         #print(mang_tam)
         #print("max {0}".format(max(mang_tam)))
         #plt.bar(range(0,214), [0,1,2,3])
@@ -203,8 +211,13 @@ while(True):
         R_f = R.dot(R_f)   
         preImage = curImage
         preFeature = curFeature
-        
+        draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
+        # Train(des3, draw_x, draw_y, CountFrameTraining)
+        # CountFrameTraining +=1
+        color = (random.randrange(0, 255, 2),random.randrange(0, 255, 2)   ,random.randrange(0, 255, 2)      )
 
+        cv2.circle(Map2d, (draw_x, draw_y) ,1, color, 2);   
+        cv2.imshow( "Map2dectory", Map2d )
         ####Visualization of the result
         
         ############## end
@@ -212,23 +225,25 @@ while(True):
         # if len(List_matches)!=0:
         #     print("day ne {0}".format(List_matches))
         #     draw_x, draw_y =  int(List_matches[0][0]),int(List_matches[0][1])
+        #     cv2.circle(localtion, (draw_x, draw_y) ,1, (0,0,255), 2);    
+        # cv2.imshow( "Map2dectory", localtion )
 
             # List_matches= []
 #         print(draw_x)
 #         print(draw_y)
         #save description of frame to database
-        draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
+        # draw_x, draw_y = int(t_f[0]) + 300, int(t_f[2]) + 300;
         # Train(des3, draw_x, draw_y, CountFrameTraining)
         # CountFrameTraining +=1
-        color = (random.randrange(0, 255, 2),random.randrange(0, 255, 2)   ,random.randrange(0, 255, 2)      )
+        #color = (random.randrange(0, 255, 2),random.randrange(0, 255, 2)   ,random.randrange(0, 255, 2)      )
 
-        cv2.circle(Map2d, (draw_x, draw_y) ,1, color, 2);   
+        # cv2.circle(Map2d, (draw_x, draw_y) ,1, (0,255,255), 2);   
             #cv2.circle(localtion, (draw_x, draw_y) ,1, (0,0,255), 2);    
         # text = "khoang cach so voi land mark: x ={0:02f}m y = {1:02f}m".format(float(500-draw_x), float(500-draw_y));
         # temp = np.zeros((480, 1280, 3), dtype=np.uint8)
     
-        #cv2.imshow( "Map2dectory", localtion )
-        cv2.imshow( "Map2dectory", Map2d )
+        # cv2.imshow( "Map2dectory", localtion )
+        # cv2.imshow( "Map2dectory", Map2d )
         cv2.imshow("anh test ",img) 
         stop = time.time()
         #print(stop - start)
@@ -237,6 +252,6 @@ while(True):
     if k == 27:
         break
 plt.show()
-#cv2.imwrite('map.png', Map2d);
+cv2.imwrite('map.png', Map2d);
 cv2.destroyAllWindows()
 print("DONE!!!!!")
